@@ -1,0 +1,68 @@
+# Seed Data for TrueVow FM Service
+# Based on PRD Section 19
+
+entities:
+  - code: TV_UAE
+    name: "TrueVow Global Tech FZE LLC"
+    country: "UAE"
+    functional_currency: "AED"
+    books: [ACCRUAL, CASH]
+
+  - code: TV_NEVIS
+    name: "TrueVow Global Technologies"
+    country: "NEVIS"
+    functional_currency: "USD"
+    books: [ACCRUAL, CASH]
+
+  - code: TV_PAK_INT
+    name: "Intakely Technologies PVT LTD"
+    country: "PAK"
+    functional_currency: "PKR"
+    books: [ACCRUAL, CASH]
+
+  - code: TV_PAK_TV
+    name: "TrueVow Global Technologies PVT LTD"
+    country: "PAK"
+    functional_currency: "PKR"
+    books: [ACCRUAL, CASH]
+
+  - code: INTAKELY_PAK
+    name: "Intakely Software Development Services"
+    country: "PAK"
+    functional_currency: "PKR"
+    books: [ACCRUAL, CASH]
+
+dimensions:
+  COST_CENTER:
+    - DEV
+    - SALES
+    - GNA
+  DEPARTMENT:
+    - Engineering
+    - Sales
+    - Finance
+    - Support
+    - Marketing
+    - Admin
+  LOCATION:
+    - UAE
+    - Pakistan
+    - Nevis
+  CHANNEL:
+    - Direct
+    - Affiliate
+    - Partner
+  PRODUCT:
+    - TrueVowCore
+    - AddOns
+  EMPLOYEE_TYPE:
+    - Employee
+    - Contractor
+    - Affiliate
+
+# Chart of Accounts template (to be added)
+# coa_template:
+#   - account_code: "1000"
+#     account_name: "Cash"
+#     account_type: "ASSET"
+#     ...
