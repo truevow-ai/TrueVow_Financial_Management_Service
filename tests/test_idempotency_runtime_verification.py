@@ -104,7 +104,22 @@ class TestC_FailedRetryBlocked:
     """Test C: FAILED retry blocked when endpoint marked unsafe."""
 
     @pytest.mark.asyncio
-    async def test_failed_retry_blocked_unsafe(self, client, test_db, test_book, test_legal_entity, test_user_id):
+    async def test_failed_retry_blocked_unsafe(self, client, test_db, test_book, test_period, test_legal_entity, test_user_id, test_gl_accounts):
+        from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+        from decimal import Decimal
+        
+        # Create a draft journal entry first using the test period date
+        dr_account, cr_account = test_gl_accounts
+        je_service = JournalEntryService(test_db)
+        entry = await je_service.create_draft_entry(
+            book_id=test_book.id,
+            entry_date=test_period.period_start,
+            description="Test entry for failed retry test",
+        )
+        await je_service.add_line(entry.id, dr_account.id, Decimal("100.00"), Decimal("0"), "USD")
+        await je_service.add_line(entry.id, cr_account.id, Decimal("0"), Decimal("100.00"), "USD")
+        await test_db.commit()
+        
         idempotency_key = f"runtime_failed_{uuid4()}"
         body = {"posted_by": test_user_id, "require_dimensions": False}
         request_hash = compute_request_hash(body)
@@ -123,7 +138,7 @@ class TestC_FailedRetryBlocked:
 
         with patch("app.core.endpoint_safety.is_safe_to_retry_failed", return_value=False):
             r = client.post(
-                f"/api/v1/books/{test_book.id}/journal-entries/{uuid4()}/post",
+                f"/api/v1/books/{test_book.id}/journal-entries/{entry.id}/post",
                 headers={"Idempotency-Key": idempotency_key},
                 json=body,
             )
