@@ -1,0 +1,52 @@
+# TrueVow Financial Management Module
+# Python Dependencies
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+# pydantic 2.12+ has prebuilt cp313 wheels; 2.5.x required Rust to build on Python 3.13
+pydantic>=2.12.0,<3
+pydantic-settings>=2.6.0,<3
+
+# Database
+# 2.0.30+ fixes Python 3.13 TypingOnly/__static_attributes__ (SQLAlchemy #11334)
+sqlalchemy[asyncio]>=2.0.30,<2.1
+# asyncpg 0.31+ has cp313-win_amd64 wheels; 0.29 requires C++ build on Python 3.13
+asyncpg==0.31.0
+psycopg2-binary>=2.9.0  # sync driver for Alembic migrations (postgresql://)
+alembic==1.12.1
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# HTTP Client
+httpx==0.25.2
+# aiohttp 3.13+ has cp313-win_amd64 wheels; 3.9.x builds from source on Python 3.13 (needs C++)
+aiohttp>=3.13.2,<4
+
+# Currency & Exchange Rates (1.12 not on PyPI; 1.9.2 is latest)
+forex-python==1.9.2
+requests==2.31.0
+
+# Date/Time
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Utilities
+python-dotenv==1.0.0
+loguru==0.7.2
+pyyaml==6.0.1
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+aiosqlite>=0.19.0  # in-memory SQLite for tests (conftest test_db)
+httpx==0.25.2
+
+# Development
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+

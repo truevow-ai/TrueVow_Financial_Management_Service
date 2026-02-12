@@ -1,0 +1,41 @@
+# VCS
+.git
+.gitignore
+
+# Python
+.venv
+venv
+__pycache__
+**/__pycache__/
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Node / Next
+node_modules
+.next
+out
+dist
+
+# Tooling / IDE
+.cursor
+.qoder
+.vscode
+.idea
+
+# Logs / temp / artifacts
+logs
+*.log
+*.tmp
+*.bak
+_tmp_*
+.DS_Store
+
+# Docs & large dumps
+**/*.md
+**/*.sql
+**/*.jsonl
+**/*.zip
+**/*.tar
+**/*.gz

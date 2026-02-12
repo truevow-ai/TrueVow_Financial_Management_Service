@@ -1,5 +1,5 @@
 """Settlement Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from decimal import Decimal
@@ -53,5 +53,4 @@ class SettlementResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

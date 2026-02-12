@@ -1,5 +1,5 @@
 """Journal Entry Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from decimal import Decimal
@@ -31,7 +31,7 @@ class JournalEntryCreate(BaseModel):
     source_type: str | None = None
     source_id: UUID | None = None
     idempotency_key: str | None = None
-    lines: list[JournalLineCreate] = Field(..., min_items=2)
+    lines: list[JournalLineCreate] = Field(..., min_length=2)
 
 
 class JournalEntryPostRequest(BaseModel):
@@ -66,8 +66,7 @@ class JournalLineResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JournalEntryResponse(BaseModel):
@@ -92,8 +91,7 @@ class JournalEntryResponse(BaseModel):
     updated_at: datetime
     lines: list[JournalLineResponse] | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JournalLineBulkUpsertItem(BaseModel):
@@ -116,7 +114,7 @@ class JournalLineBulkUpsertItem(BaseModel):
 
 class JournalLineBulkUpsertRequest(BaseModel):
     """Schema for bulk upsert request"""
-    lines: list[JournalLineBulkUpsertItem] = Field(..., min_items=0)
+    lines: list[JournalLineBulkUpsertItem] = Field(..., min_length=0)
 
 
 class JournalLineBulkUpsertError(BaseModel):

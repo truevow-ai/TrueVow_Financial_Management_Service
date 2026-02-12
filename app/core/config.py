@@ -1,6 +1,6 @@
 """Application configuration"""
 from pydantic import model_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
@@ -81,10 +81,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     enable_metrics: bool = True
     
-    class Config:
-        env_file = [".env", ".env.local"]  # Check both .env and .env.local
-        case_sensitive = False
-        extra = "ignore"  # Ignore extra fields from .env.local
+    model_config = SettingsConfigDict(
+        env_file=[".env", ".env.local"],
+        case_sensitive=False,
+        extra="ignore",
+    )
 
 
 settings = Settings()

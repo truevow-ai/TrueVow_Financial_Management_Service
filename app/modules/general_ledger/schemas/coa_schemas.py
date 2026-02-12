@@ -1,5 +1,5 @@
 """Chart of Accounts Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import datetime
 from app.modules.general_ledger.models.gl_account_model import AccountType
@@ -35,8 +35,7 @@ class GLAccountResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GLAccountMappingCreate(BaseModel):
@@ -57,5 +56,4 @@ class GLAccountMappingResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,5 +1,5 @@
 """Reconciliation Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from decimal import Decimal
@@ -42,8 +42,7 @@ class ReconciliationMatchResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReconciliationAdjustmentSubmitRequest(BaseModel):
@@ -93,8 +92,7 @@ class ReconciliationSessionResponse(BaseModel):
     updated_at: datetime
     matches: list[ReconciliationMatchResponse] | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Reconciliation Matching Schemas
@@ -112,5 +110,4 @@ class MatchSuggestionResponse(BaseModel):
     confidence: float
     match_reasons: List[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

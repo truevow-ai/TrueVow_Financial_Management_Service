@@ -1,5 +1,5 @@
 """Bank Transaction Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from decimal import Decimal
@@ -25,7 +25,7 @@ class BankTransactionCreate(BaseModel):
 class BankTransactionCSVImport(BaseModel):
     """Schema for CSV import request"""
     bank_account_id: UUID
-    transactions: list[dict] = Field(..., min_items=1)
+    transactions: list[dict] = Field(..., min_length=1)
     import_batch_id: str = Field(..., min_length=1)
 
 
@@ -49,8 +49,7 @@ class BankTransactionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BankTransactionListResponse(BaseModel):

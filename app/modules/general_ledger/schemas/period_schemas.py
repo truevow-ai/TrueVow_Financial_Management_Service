@@ -1,5 +1,5 @@
 """Accounting Period Schemas"""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from app.modules.general_ledger.models.accounting_period_model import PeriodStatus
@@ -23,14 +23,12 @@ class PeriodCloseSubmitRequest(BaseModel):
     """Schema for submitting period for close approval"""
     reason: str | None = None
     row_version: int  # Required for optimistic locking
-    row_version: int  # Required for optimistic locking
 
 
 class PeriodCloseApproveRequest(BaseModel):
     """Schema for approving period close"""
     reason: str | None = None
     override_reason: str | None = None  # For FINANCE_ADMIN SoD override
-    row_version: int  # Required for optimistic locking
     row_version: int  # Required for optimistic locking
 
 
@@ -60,8 +58,7 @@ class AccountingPeriodResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Period Close Checklist Schemas
@@ -83,8 +80,7 @@ class PeriodCloseChecklistItemResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PeriodCloseChecklistMarkCompleteRequest(BaseModel):
