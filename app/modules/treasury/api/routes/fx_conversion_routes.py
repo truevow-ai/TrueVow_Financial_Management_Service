@@ -11,8 +11,9 @@ from app.modules.treasury.schemas.fx_conversion_schemas import (
     FXConversionResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError, DuplicateEntryError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/fx/conversions", tags=["FX Conversions"])
+router = APIRouter(prefix="/fx/conversions", tags=["FX Conversions"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=FXConversionResponse, status_code=status.HTTP_201_CREATED)

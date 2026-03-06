@@ -45,7 +45,6 @@ class PayrollRun(BaseModel):
     rejected_by = Column(UUID(as_uuid=True), nullable=True)
     rejected_at = Column(DateTime(timezone=True), nullable=True)
     decision_reason = Column(Text, nullable=True)  # Required on reject, optional on approve
-    row_version = Column(Integer, default=1, nullable=False)  # Optimistic concurrency
     # Posting fields
     posted_by = Column(UUID(as_uuid=True), nullable=True)
     posted_at = Column(DateTime(timezone=True), nullable=True)

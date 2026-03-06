@@ -24,9 +24,18 @@ from app.core.exceptions import (
     PeriodLockedError,
     DuplicateEntryError
 )
-from app.auth.middleware import get_current_user
+from app.auth.authorization import (
+    get_user_context,
+    require_internal_permission,
+    require_tenant_permission,
+    InternalUserContext,
+    TenantUserContext,
+    UserContext,
+    Permission,
+    TenantPermission,
+)
 
-router = APIRouter(prefix="/books/{book_id}/journal-entries", tags=["Journal Entries"])
+router = APIRouter(prefix="/books/{book_id}/journal-entries", tags=["Journal Entries"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=JournalEntryResponse, status_code=status.HTTP_201_CREATED)
@@ -34,9 +43,18 @@ async def create_journal_entry(
     book_id: UUID,
     entry: JournalEntryCreate,
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
-    db: AsyncSession = Depends(get_db_session)
+    db: AsyncSession = Depends(get_db_session),
+    user: UserContext = Depends(get_user_context)
 ):
     """Create a new journal entry"""
+    # Check permissions
+    if user.is_internal():
+        if not user.has_permission(Permission.GL_WRITE.value):
+            raise HTTPException(status_code=403, detail="Permission denied: gl:write required")
+    else:
+        # Tenant users need FM_JOURNAL_ENTRY permission
+        if not user.has_permission(TenantPermission.FM_JOURNAL_ENTRY.value):
+            raise HTTPException(status_code=403, detail="Permission denied: fm:journal_entry required")
     service = JournalEntryService(db)
     
     # Use header idempotency key if provided, otherwise use request body
@@ -128,10 +146,18 @@ async def post_journal_entry(
     entry_id: UUID,
     request: JournalEntryPostRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user),
+    user: UserContext = Depends(get_user_context),
     idempotency_key: str = Depends(require_idempotency_key)
 ):
     """Post a journal entry (makes it immutable)"""
+    # Check permissions
+    if user.is_internal():
+        if not user.has_permission(Permission.GL_POST.value):
+            raise HTTPException(status_code=403, detail="Permission denied: gl:post required")
+    else:
+        if not user.has_permission(TenantPermission.FM_POST.value):
+            raise HTTPException(status_code=403, detail="Permission denied: fm:post required")
+    
     from app.modules.general_ledger.repositories.book_repository import BookRepository
     
     service = JournalEntryService(db)
@@ -150,8 +176,9 @@ async def post_journal_entry(
         raise HTTPException(status_code=404, detail="Book not found")
     
     # Use user_id from token, fallback to request if provided
-    posted_by = UUID(user.get("user_id")) if user.get("user_id") else request.posted_by
-    actor_user_id = UUID(user.get("user_id")) if user.get("user_id") else None
+    user_id_str = user.user_id if hasattr(user, 'user_id') else str(user.user_id)
+    posted_by = UUID(user_id_str) if user_id_str else request.posted_by
+    actor_user_id = UUID(user_id_str) if user_id_str else None
     
     # Handler function (return serializable so idempotency store + response_model work)
     async def handler():
@@ -191,10 +218,18 @@ async def reverse_journal_entry(
     entry_id: UUID,
     request: JournalEntryReverseRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user),
+    user: UserContext = Depends(get_user_context),
     idempotency_key: str = Depends(require_idempotency_key)
 ):
     """Reverse a posted journal entry"""
+    # Check permissions
+    if user.is_internal():
+        if not user.has_permission(Permission.GL_REVERSE.value):
+            raise HTTPException(status_code=403, detail="Permission denied: gl:reverse required")
+    else:
+        if not user.has_permission(TenantPermission.FM_APPROVE.value):
+            raise HTTPException(status_code=403, detail="Permission denied: fm:approve required")
+    
     from app.modules.general_ledger.repositories.book_repository import BookRepository
     
     service = JournalEntryService(db)
@@ -213,8 +248,9 @@ async def reverse_journal_entry(
         raise HTTPException(status_code=404, detail="Book not found")
     
     # Use user_id from token, fallback to request if provided
-    reversed_by = UUID(user.get("user_id")) if user.get("user_id") else request.reversed_by
-    actor_user_id = UUID(user.get("user_id")) if user.get("user_id") else None
+    user_id_str = user.user_id if hasattr(user, 'user_id') else str(user.user_id)
+    reversed_by = UUID(user_id_str) if user_id_str else request.reversed_by
+    actor_user_id = UUID(user_id_str) if user_id_str else None
     
     # Handler function
     async def handler():

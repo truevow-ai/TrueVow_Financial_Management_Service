@@ -17,8 +17,9 @@ from app.modules.treasury.schemas.bank_transaction_schemas import (
     BankTransactionListResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError, DuplicateEntryError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/bank-transactions", tags=["Bank Transactions"])
+router = APIRouter(prefix="/bank-transactions", tags=["Bank Transactions"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=BankTransactionResponse, status_code=status.HTTP_201_CREATED)

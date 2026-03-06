@@ -12,8 +12,9 @@ from app.modules.ar.schemas.deferred_revenue_schemas import (
     RevenueSchedulePeriodResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/revrec", tags=["Deferred Revenue"])
+router = APIRouter(prefix="/books/{book_id}/revrec", tags=["Deferred Revenue"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/schedules/{invoice_line_id}", response_model=RevenueScheduleResponse, status_code=status.HTTP_201_CREATED)

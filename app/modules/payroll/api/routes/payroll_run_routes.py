@@ -20,9 +20,14 @@ from app.modules.payroll.schemas.payroll_run_schemas import (
 )
 from app.modules.payroll.models.payroll_run_model import PayrollRunStatus
 from app.core.exceptions import NotFoundError, ValidationError
-from app.auth.middleware import get_current_user
+from app.auth.authorization import (
+    get_user_context,
+    UserContext,
+    Permission,
+    TenantPermission,
+)
 
-router = APIRouter(prefix="/books/{book_id}/payroll", tags=["Payroll Runs"])
+router = APIRouter(prefix="/books/{book_id}/payroll", tags=["Payroll Runs"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/runs", response_model=PayrollRunResponse, status_code=status.HTTP_201_CREATED)
@@ -70,15 +75,15 @@ async def submit_payroll_run_for_approval(
     run_id: UUID,
     request: PayrollRunSubmitApprovalRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Submit payroll run for approval"""
     approval_service = PayrollApprovalService(db)
     try:
         submitted = await approval_service.submit_for_approval(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             row_version=request.row_version
         )
@@ -94,15 +99,15 @@ async def approve_payroll_run(
     run_id: UUID,
     request: PayrollRunApproveRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Approve payroll run"""
     approval_service = PayrollApprovalService(db)
     try:
         approved = await approval_service.approve(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             override_reason=request.override_reason,
             row_version=request.row_version
@@ -119,15 +124,15 @@ async def reject_payroll_run(
     run_id: UUID,
     request: PayrollRunRejectRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Reject payroll run"""
     approval_service = PayrollApprovalService(db)
     try:
         rejected = await approval_service.reject(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             row_version=request.row_version
         )
@@ -144,10 +149,18 @@ async def post_payroll_run(
     run_id: UUID,
     request: PayrollRunPostRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user),
+    user: UserContext = Depends(get_user_context),
     idempotency_key: str = Depends(require_idempotency_key)
 ):
     """Post payroll run to ACCRUAL book"""
+    # Check permissions
+    if user.is_internal():
+        if not user.has_permission(Permission.PAYROLL_POST.value):
+            raise HTTPException(status_code=403, detail="Permission denied: payroll:post required")
+    else:
+        if not user.has_permission(TenantPermission.FM_POST.value):
+            raise HTTPException(status_code=403, detail="Permission denied: fm:post required")
+    
     service = PayrollRunService(db)
     
     # Verify run belongs to book
@@ -161,7 +174,8 @@ async def post_payroll_run(
     legal_entity_id = run.legal_entity_id
     
     # Use user_id from token
-    posted_by = UUID(user.get("user_id")) if user.get("user_id") else None
+    user_id_str = user.user_id if hasattr(user, 'user_id') else str(user.user_id)
+    posted_by = UUID(user_id_str) if user_id_str else None
     if not posted_by:
         raise HTTPException(status_code=400, detail="User ID required")
     actor_user_id = posted_by
@@ -204,10 +218,18 @@ async def reverse_payroll_run(
     run_id: UUID,
     request: PayrollRunReverseRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user),
+    user: UserContext = Depends(get_user_context),
     idempotency_key: str = Depends(require_idempotency_key)
 ):
     """Reverse a posted payroll run (FINANCE_ADMIN only)"""
+    # Check permissions - only internal users with payroll:approve can reverse
+    if user.is_internal():
+        if not user.has_permission(Permission.PAYROLL_APPROVE.value):
+            raise HTTPException(status_code=403, detail="Permission denied: payroll:approve required")
+    else:
+        # Tenant users cannot reverse payroll runs
+        raise HTTPException(status_code=403, detail="Tenant users cannot reverse payroll runs")
+    
     service = PayrollRunService(db)
     
     # Verify run belongs to book
@@ -220,16 +242,9 @@ async def reverse_payroll_run(
     # Get legal_entity_id from run
     legal_entity_id = run.legal_entity_id
     
-    # Check user role (FINANCE_ADMIN only)
-    user_roles = user.get("roles", [])
-    if "FINANCE_ADMIN" not in user_roles:
-        raise HTTPException(
-            status_code=403,
-            detail="Only FINANCE_ADMIN can reverse payroll runs"
-        )
-    
     # Use user_id from token
-    reversed_by = UUID(user.get("user_id")) if user.get("user_id") else None
+    user_id_str = user.user_id if hasattr(user, 'user_id') else str(user.user_id)
+    reversed_by = UUID(user_id_str) if user_id_str else None
     if not reversed_by:
         raise HTTPException(status_code=400, detail="User ID required")
     actor_user_id = reversed_by

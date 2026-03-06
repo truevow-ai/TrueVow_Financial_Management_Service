@@ -13,8 +13,9 @@ from app.modules.general_ledger.schemas.coa_schemas import (
     GLAccountMappingResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/accounts", tags=["Chart of Accounts"])
+router = APIRouter(prefix="/books/{book_id}/accounts", tags=["Chart of Accounts"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=GLAccountResponse, status_code=status.HTTP_201_CREATED)

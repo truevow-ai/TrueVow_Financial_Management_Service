@@ -1,0 +1,75 @@
+-- =====================================================
+-- TrueVow Financial Management - Complete Security Bundle
+-- =====================================================
+-- DEPLOYMENT INSTRUCTIONS FOR SUPABASE DASHBOARD
+-- =====================================================
+-- 
+-- NETWORK ISSUE DETECTED: Direct psql connection blocked.
+-- Use Supabase Dashboard SQL Editor instead:
+-- 
+-- 1. Go to: https://supabase.com/dashboard
+-- 2. Select project: ififhzrbhadmtedyvzhb
+-- 3. Navigate to: SQL Editor
+-- 4. Copy and paste the contents of each file below, IN ORDER:
+--    a) rls_policies.sql (P0 - CRITICAL)
+--    b) immutability_constraints.sql (P1 - URGENT)
+--    c) business_constraints.sql (P2 - HIGH)
+-- 5. Click "Run" after each paste
+--
+-- =====================================================
+-- VERIFICATION AFTER DEPLOYMENT:
+-- =====================================================
+-- 
+-- Run these queries in SQL Editor to verify:
+--
+-- -- Check RLS is enabled (should return ~50 tables):
+-- SELECT COUNT(*) FROM pg_tables WHERE schemaname = 'public' AND rowsecurity = true;
+--
+-- -- Check policies exist (should return ~50 policies):
+-- SELECT COUNT(*) FROM pg_policies WHERE schemaname = 'public';
+--
+-- -- Check triggers exist (should return ~12 triggers):
+-- SELECT COUNT(*) FROM pg_trigger WHERE tgname LIKE '%immutability%' OR tgname LIKE '%validation%';
+--
+-- -- Test RLS (replace with actual tenant UUID):
+-- SET app.current_tenant_id = '00000000-0000-0000-0000-000000000000';
+-- SELECT * FROM legal_entity LIMIT 1;
+--
+-- =====================================================
+-- SUMMARY OF WHAT THIS DEPLOYS:
+-- =====================================================
+--
+-- RLS POLICIES (P0):
+-- - Enables Row-Level Security on 50+ tables
+-- - Creates tenant isolation policy for all business tables
+-- - Uses app.current_tenant_id session variable
+--
+-- IMMUTABILITY CONSTRAINTS (P1):
+-- - Prevents modification of POSTED journal entries
+-- - Prevents modification of CLOSED/LOCKED periods
+-- - Prevents modification of POSTED payroll runs
+-- - Makes AR/AP allocations immutable after creation
+-- - Validates journal entry balance before posting
+-- - Validates status transitions
+--
+-- BUSINESS CONSTRAINTS (P2):
+-- - Unique constraints on business keys
+-- - Check constraints for non-negative amounts
+-- - Currency validation (ISO 4217 format)
+-- - Date range validation
+-- - Business logic constraints
+--
+-- =====================================================
+-- TROUBLESHOOTING NETWORK ISSUES:
+-- =====================================================
+--
+-- If you want to fix the network connectivity:
+-- 1. Check Windows Firewall settings
+-- 2. Check Antivirus software (Norton, McAfee, etc.)
+-- 3. Try without VPN
+-- 4. Try from different network (mobile hotspot)
+-- 5. Contact IT to allow port 5432 to *.supabase.com
+--
+-- =====================================================
+-- END OF DEPLOYMENT INSTRUCTIONS
+-- =====================================================

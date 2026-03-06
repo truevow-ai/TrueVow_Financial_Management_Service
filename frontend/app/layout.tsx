@@ -24,9 +24,7 @@ export default function RootLayout({
         <body className={inter.className}>
           <QueryClientProvider>
             <ToastProvider>
-              <EntityBookProvider>
-                {children}
-              </EntityBookProvider>
+              {children}
             </ToastProvider>
           </QueryClientProvider>
         </body>

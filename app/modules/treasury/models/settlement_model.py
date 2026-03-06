@@ -1,5 +1,5 @@
 """Settlement Model"""
-from sqlalchemy import Column, String, Date, ForeignKey, Numeric, Enum as SQLEnum
+from sqlalchemy import Column, String, Date, ForeignKey, Numeric, Enum as SQLEnum, Index, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import enum
@@ -37,9 +37,15 @@ class Settlement(BaseModel):
     bank_transaction = relationship("BankTransaction")
     
     __table_args__ = (
-        # Composite unique constraint: (source, external_settlement_id) where external_settlement_id IS NOT NULL
+        # Partial unique index: (source, external_settlement_id) where external_settlement_id IS NOT NULL
         # This prevents duplicate settlements from the same provider with the same external ID
-        # Note: NULL external_settlement_id values are allowed (for manual settlements)
+        Index(
+            "uq_settlement_source_external_id",
+            "source",
+            "external_settlement_id",
+            unique=True,
+            postgresql_where=text("external_settlement_id IS NOT NULL")
+        ),
         {"comment": "Payment gateway settlements (Stripe/TELR payouts)"}
     )
     

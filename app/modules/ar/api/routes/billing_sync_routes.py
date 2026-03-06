@@ -7,15 +7,16 @@ from app.core.database import get_db_session
 from app.core.idempotency import require_idempotency_key, apply_idempotency
 from app.core.endpoint_keys import BILLING_SYNC
 from app.modules.ar.services.ar_sync_service import ARSyncService
-from app.modules.ar.integrations.billing_adapter import BillingAdapter, HTTPBillingAdapter, MockBillingAdapter
+from app.modules.ar.integrations.billing_adapter import BillingAdapter, HTTPBillingAdapter
 from app.modules.ar.schemas.ar_sync_schemas import (
     BillingSyncRequest,
     BillingSyncResponse
 )
 from app.core.config import settings
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/integrations/billing", tags=["Billing Sync"])
+router = APIRouter(prefix="/integrations/billing", tags=["Billing Sync"], dependencies=[Depends(get_user_context)])
 
 
 def get_billing_adapter() -> BillingAdapter:

@@ -24,8 +24,9 @@ from app.modules.ap.schemas.ap_bill_schemas import (
 from app.modules.ap.models.ap_bill_model import BillStatus
 from app.core.exceptions import NotFoundError, ValidationError
 from app.auth.middleware import get_current_user
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/ap/bills", tags=["AP Bills"])
+router = APIRouter(prefix="/books/{book_id}/ap/bills", tags=["AP Bills"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=APBillResponse, status_code=status.HTTP_201_CREATED)

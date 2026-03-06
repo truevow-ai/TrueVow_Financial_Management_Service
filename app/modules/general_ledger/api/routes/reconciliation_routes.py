@@ -33,8 +33,9 @@ from app.modules.general_ledger.schemas.reconciliation_schemas import (
 from app.modules.general_ledger.models.reconciliation_model import ReconciliationStatus
 from app.core.exceptions import NotFoundError, ValidationError
 from app.auth.middleware import get_current_user
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/reconciliations", tags=["Bank Reconciliation"])
+router = APIRouter(prefix="/books/{book_id}/reconciliations", tags=["Bank Reconciliation"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=ReconciliationSessionResponse, status_code=status.HTTP_201_CREATED)

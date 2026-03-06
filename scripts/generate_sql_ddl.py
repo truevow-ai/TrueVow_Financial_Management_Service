@@ -70,8 +70,8 @@ def main():
     
     parser = argparse.ArgumentParser(description='Generate SQL DDL from SQLAlchemy models')
     parser.add_argument('--output', '-o', 
-                       default='database/schema.sql',
-                       help='Output file path (default: database/schema.sql)')
+                       default='infra/database/schema.sql',
+                       help='Output file path (default: infra/database/schema.sql)')
     
     args = parser.parse_args()
     

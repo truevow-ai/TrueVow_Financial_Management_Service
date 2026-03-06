@@ -1,17 +1,24 @@
-import { auth } from '@clerk/nextjs'
+'use client'
+
 import { redirect } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
+import { EntityBookProvider } from '@/contexts/EntityBookContext'
+import { useAuth } from '@clerk/nextjs'
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = await auth()
+  const { isSignedIn } = useAuth()
 
-  if (!userId) {
+  if (!isSignedIn) {
     redirect('/sign-in')
   }
 
-  return <Layout>{children}</Layout>
+  return (
+    <EntityBookProvider>
+      <Layout>{children}</Layout>
+    </EntityBookProvider>
+  )
 }

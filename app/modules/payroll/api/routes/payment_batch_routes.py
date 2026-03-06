@@ -6,8 +6,9 @@ from app.core.database import get_db_session
 from app.modules.payroll.services.payment_batch_service import PaymentBatchService
 from app.modules.payroll.models.payment_batch_model import BatchStatus
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/payroll", tags=["Payment Batches"])
+router = APIRouter(prefix="/books/{book_id}/payroll", tags=["Payment Batches"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/runs/{run_id}/wps-batch", status_code=status.HTTP_201_CREATED)

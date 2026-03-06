@@ -141,7 +141,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Other values from the config
-config.set_main_option("script_location", "database/migrations")
+config.set_main_option("script_location", "infra/database/migrations")
 
 
 def run_migrations_offline() -> None:

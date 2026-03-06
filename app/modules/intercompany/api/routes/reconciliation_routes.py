@@ -8,8 +8,9 @@ from app.core.database import get_db_session
 from app.modules.intercompany.services.intercompany_reconciliation_service import IntercompanyReconciliationService
 from app.modules.intercompany.models.intercompany_balance_model import IntercompanyBalance
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/intercompany/reconciliation", tags=["Intercompany Reconciliation"])
+router = APIRouter(prefix="/intercompany/reconciliation", tags=["Intercompany Reconciliation"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/balance-snapshot", status_code=status.HTTP_201_CREATED)

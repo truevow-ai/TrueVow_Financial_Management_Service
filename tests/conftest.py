@@ -16,6 +16,7 @@ if not os.environ.get("JWT_SECRET_KEY") and not os.environ.get("FINANCIAL_MANAGE
 import pytest
 import asyncio
 from typing import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 from uuid import uuid4
@@ -78,7 +79,14 @@ async def test_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
     
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        if "postgresql" in url:
+            # Use CASCADE to handle FK dependencies from unmanaged tables
+            for table in reversed(Base.metadata.sorted_tables):
+                await conn.execute(
+                    text(f"DROP TABLE IF EXISTS {table.name} CASCADE")
+                )
+        else:
+            await conn.run_sync(Base.metadata.drop_all)
     
     await engine.dispose()
 

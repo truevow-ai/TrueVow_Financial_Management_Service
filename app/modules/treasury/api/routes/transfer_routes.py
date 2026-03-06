@@ -12,8 +12,9 @@ from app.modules.treasury.schemas.transfer_schemas import (
 )
 from app.modules.treasury.models.transfer_model import TransferType
 from app.core.exceptions import NotFoundError, ValidationError, DuplicateEntryError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/transfers", tags=["Transfers"])
+router = APIRouter(prefix="/transfers", tags=["Transfers"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)

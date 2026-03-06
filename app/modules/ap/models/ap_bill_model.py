@@ -49,7 +49,6 @@ class APBill(BaseModel):
     decision_reason = Column(Text, nullable=True)
     posted_by = Column(UUID(as_uuid=True), nullable=True)
     posted_at = Column(Date, nullable=True)
-    row_version = Column(Integer, default=1, nullable=False)  # Optimistic locking
     
     # Posting
     journal_entry_id = Column(UUID(as_uuid=True), ForeignKey("journal_entry.id"), nullable=True)

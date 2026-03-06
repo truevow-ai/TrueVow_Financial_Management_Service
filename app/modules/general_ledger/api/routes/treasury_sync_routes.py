@@ -13,8 +13,9 @@ from app.modules.general_ledger.schemas.treasury_sync_schemas import (
     TreasurySyncResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/integrations/treasury", tags=["Treasury Sync"])
+router = APIRouter(prefix="/books/{book_id}/integrations/treasury", tags=["Treasury Sync"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/sync", response_model=TreasurySyncResponse, status_code=status.HTTP_200_OK)

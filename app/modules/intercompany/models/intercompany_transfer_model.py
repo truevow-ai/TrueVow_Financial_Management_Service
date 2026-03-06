@@ -13,6 +13,14 @@ class TransferDirection(str, enum.Enum):
     TO_ENTITY = "TO_ENTITY"
 
 
+class IntercompanyTransferStatus(str, enum.Enum):
+    """Intercompany transfer status"""
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    SETTLED = "SETTLED"
+    CANCELLED = "CANCELLED"
+
+
 class IntercompanyTransfer(BaseModel):
     """Intercompany transfer model"""
     __tablename__ = "intercompany_transfer"
@@ -39,6 +47,7 @@ class IntercompanyTransfer(BaseModel):
     # Reconciliation
     is_reconciled = Column(Boolean, default=False, nullable=False, index=True)
     reconciled_at = Column(Date, nullable=True)
+    status = Column(SQLEnum(IntercompanyTransferStatus), default=IntercompanyTransferStatus.PENDING, nullable=False, index=True)
     
     # Relationships
     from_entity = relationship("LegalEntity", foreign_keys=[from_entity_id])

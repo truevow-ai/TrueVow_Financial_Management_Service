@@ -30,7 +30,6 @@ class AccountingPeriod(BaseModel):
     approved_by = Column(UUID(as_uuid=True), nullable=True)  # User who approved close
     approved_at = Column(DateTime(timezone=True), nullable=True)
     decision_reason = Column(Text, nullable=True)  # Reason for approval/rejection
-    row_version = Column(Integer, default=1, nullable=False)  # Optimistic concurrency
     # Legacy fields (kept for backward compatibility)
     closed_by = Column(UUID(as_uuid=True), nullable=True)  # User who closed it (maps to approved_by)
     closed_at = Column(DateTime(timezone=True), nullable=True)  # When closed (maps to approved_at)

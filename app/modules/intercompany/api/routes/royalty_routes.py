@@ -24,9 +24,14 @@ from app.modules.intercompany.schemas.intercompany_schemas import (
     RoyaltyRunRejectRequest
 )
 from app.core.exceptions import NotFoundError, ValidationError
-from app.auth.middleware import get_current_user
+from app.auth.authorization import (
+    get_user_context,
+    UserContext,
+    Permission,
+    TenantPermission,
+)
 
-router = APIRouter(prefix="/intercompany/royalties", tags=["Royalties"])
+router = APIRouter(prefix="/intercompany/royalties", tags=["Royalties"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/agreements", response_model=RoyaltyAgreementResponse, status_code=status.HTTP_201_CREATED)
@@ -129,15 +134,15 @@ async def submit_royalty_run_for_approval(
     run_id: UUID,
     request: RoyaltyRunSubmitApprovalRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Submit royalty run for approval"""
     approval_service = RoyaltyApprovalService(db)
     try:
         submitted = await approval_service.submit_for_approval(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             row_version=request.row_version
         )
@@ -153,15 +158,15 @@ async def approve_royalty_run(
     run_id: UUID,
     request: RoyaltyRunApproveRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Approve royalty run"""
     approval_service = RoyaltyApprovalService(db)
     try:
         approved = await approval_service.approve(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             override_reason=request.override_reason,
             row_version=request.row_version
@@ -178,15 +183,15 @@ async def reject_royalty_run(
     run_id: UUID,
     request: RoyaltyRunRejectRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user)
+    user: UserContext = Depends(get_user_context)
 ):
     """Reject royalty run"""
     approval_service = RoyaltyApprovalService(db)
     try:
         rejected = await approval_service.reject(
             run_id=run_id,
-            user_id=user["user_id"],
-            user_role=user.get("roles", [""])[0] if user.get("roles") else "",
+            user_id=user.user_id,
+            user_role=user.roles[0] if hasattr(user, 'roles') and user.roles else "",
             reason=request.reason,
             row_version=request.row_version
         )
@@ -202,7 +207,7 @@ async def post_royalty_calculation(
     calculation_id: UUID,
     request: RoyaltyCalculationPostRequest,
     db: AsyncSession = Depends(get_db_session),
-    user: dict = Depends(get_current_user),
+    user: UserContext = Depends(get_user_context),
     idempotency_key: str = Depends(require_idempotency_key)
 ):
     """Post royalty calculation as intercompany transfer"""
@@ -225,11 +230,12 @@ async def post_royalty_calculation(
         raise HTTPException(status_code=404, detail="ACCRUAL book not found for entity")
     
     book_id = from_book.id
-    actor_user_id = UUID(user.get("user_id")) if user.get("user_id") else None
+    user_id_str = user.user_id if hasattr(user, 'user_id') else str(user.user_id)
+    actor_user_id = UUID(user_id_str) if user_id_str else None
     
     # Handler function
     async def handler():
-        je_id = await service.post_royalty(calculation_id, user["user_id"])
+        je_id = await service.post_royalty(calculation_id, user_id_str)
         return {
             "calculation_id": str(calculation_id),
             "journal_entry_id": str(je_id),

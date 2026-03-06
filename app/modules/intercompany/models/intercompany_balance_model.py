@@ -1,5 +1,5 @@
 """Intercompany Balance Model"""
-from sqlalchemy import Column, String, Date, ForeignKey, Numeric, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy import Column, String, Date, Boolean, ForeignKey, Numeric, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import enum
@@ -24,6 +24,7 @@ class IntercompanyBalance(BaseModel):
     balance_type = Column(SQLEnum(BalanceType), default=BalanceType.NET, nullable=False)
     balance_amount = Column(Numeric(15, 2), nullable=False)
     currency = Column(String(3), nullable=False)
+    is_reconciled = Column(Boolean, default=False, nullable=False, index=True)
     
     # Relationships
     from_entity = relationship("LegalEntity", foreign_keys=[from_entity_id])

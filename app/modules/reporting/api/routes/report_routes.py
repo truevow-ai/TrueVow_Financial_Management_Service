@@ -18,8 +18,9 @@ from app.modules.reporting.schemas.report_schemas import (
     ARAgingRequest,
     GLDetailRequest
 )
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/reports", tags=["Financial Reports"])
+router = APIRouter(prefix="/reports", tags=["Financial Reports"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/trial-balance", status_code=status.HTTP_200_OK)

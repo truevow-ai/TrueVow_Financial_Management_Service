@@ -11,8 +11,9 @@ from app.modules.treasury.schemas.bank_account_schemas import (
     BankAccountResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/bank-accounts", tags=["Bank Accounts"])
+router = APIRouter(prefix="/bank-accounts", tags=["Bank Accounts"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=BankAccountResponse, status_code=status.HTTP_201_CREATED)

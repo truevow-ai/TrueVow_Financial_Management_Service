@@ -75,7 +75,6 @@ class RoyaltyCalculation(BaseModel):
     rejected_by = Column(UUID(as_uuid=True), nullable=True)
     rejected_at = Column(DateTime(timezone=True), nullable=True)
     decision_reason = Column(Text, nullable=True)
-    row_version = Column(Integer, default=1, nullable=False)
     # Posting fields (legacy: kept for backward compatibility)
     is_posted = Column(Boolean, default=False, nullable=False, index=True)
     posted_at = Column(DateTime(timezone=True), nullable=True)

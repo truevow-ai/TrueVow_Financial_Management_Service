@@ -12,8 +12,9 @@ from app.modules.ar.repositories.ar_invoice_repository import ARInvoiceRepositor
 from app.modules.ar.repositories.ar_customer_repository import ARCustomerRepository
 from app.modules.ar.models.ar_invoice_model import InvoiceStatus
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/ar", tags=["Accounts Receivable"])
+router = APIRouter(prefix="/books/{book_id}/ar", tags=["Accounts Receivable"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/invoices/{invoice_id}/post", status_code=status.HTTP_200_OK)

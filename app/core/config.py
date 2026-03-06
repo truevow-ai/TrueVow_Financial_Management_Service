@@ -1,7 +1,7 @@
 """Application configuration"""
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Optional, List
 
 
 class Settings(BaseSettings):
@@ -48,6 +48,42 @@ class Settings(BaseSettings):
         else:
             raise ValueError("Either DATABASE_URL or FINANCIAL_MANAGEMENT_DATABASE_URL must be set")
     
+    # =========================================================
+    # Security Contract v1 — AUTH_MODE
+    # =========================================================
+    # auth_mode = "local" | "clerk"
+    # "local"  : HS256 symmetric key, for development/testing only.
+    # "clerk"  : Clerk JWKS RS256, mandatory in production.
+    #
+    # Contract rule (Section 5):
+    #   If ENV=production AND AUTH_MODE != "clerk" → RuntimeError at startup.
+    auth_mode: str = "local"
+
+    # Clerk JWKS endpoint URL.
+    # Required when auth_mode = "clerk".
+    # Example: https://<your-clerk-domain>/.well-known/jwks.json
+    clerk_jwks_url: Optional[str] = None
+
+    # JWKS cache TTL in seconds (default 3600 = 1 hour).
+    clerk_jwks_cache_ttl: int = 3600
+
+    # FM service allowed JWT scopes.
+    # FM accepts both internal and tenant users.
+    # Contract Section 3: Service-specific for Platform Core.
+    fm_allowed_scopes: List[str] = ["internal", "tenant"]
+
+    # =========================================================
+    # Security Contract v1 — PERMISSION_FAIL_OPEN
+    # =========================================================
+    # Controls behaviour when the DB permission service is unavailable.
+    #
+    # Contract rule (Section 6.2):
+    #   false (default) : Deny access (403) on permission service failure.
+    #   true            : Fall back to role-based default (allowed only in non-production).
+    #
+    # Must be false in production.  Must be removed before go-live.
+    permission_fail_open: bool = False
+
     # Security: JWT secret from JWT_SECRET_KEY or FINANCIAL_MANAGEMENT_SECRET_KEY (.env.local)
     jwt_secret_key: Optional[str] = None
     financial_management_secret_key: Optional[str] = None  # env: FINANCIAL_MANAGEMENT_SECRET_KEY
@@ -76,6 +112,23 @@ class Settings(BaseSettings):
     # Treasury Service Integration
     treasury_api_url: Optional[str] = None
     treasury_api_key: Optional[str] = None
+    
+    # =========================================================
+    # Service Registry Configuration
+    # =========================================================
+    # Internal Ops hosts the Service Registry on port 3006
+    # All microservices MUST register on startup and send heartbeats
+    service_registry_url: Optional[str] = None  # e.g., "http://localhost:3006"
+    service_registry_enabled: bool = True
+    service_registry_heartbeat_interval: int = 300  # 5 minutes in seconds
+    service_registry_timeout: int = 10  # HTTP timeout for registry calls
+    service_registry_api_key: Optional[str] = None  # Optional API key for secure registry
+    
+    # This service's identity for registration
+    service_name: str = "fm_service"
+    service_port: int = 8000
+    service_host: Optional[str] = None  # Auto-detected if not set
+    service_type: str = "financial"  # Service category for registry
     
     # Observability
     log_level: str = "INFO"

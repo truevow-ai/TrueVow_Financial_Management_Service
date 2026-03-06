@@ -28,8 +28,9 @@ from app.modules.general_ledger.models.period_close_checklist_model import Check
 from app.modules.general_ledger.models.accounting_period_model import PeriodStatus
 from app.core.exceptions import NotFoundError, ValidationError, PeriodLockedError
 from app.auth.middleware import get_current_user
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/books/{book_id}/periods", tags=["Accounting Periods"])
+router = APIRouter(prefix="/books/{book_id}/periods", tags=["Accounting Periods"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("/generate", response_model=List[AccountingPeriodResponse], status_code=status.HTTP_201_CREATED)

@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useClerkToken } from './useClerkToken'
 import { useEntityBook } from '@/contexts/EntityBookContext'
+import { useCompanyOperation } from './useCompanyOperations'
+import { apiClient } from '@/lib/apiClient'
 
 /**
  * Approval Workflow Hooks
@@ -438,11 +440,11 @@ export function useSubmitAPBillForApproval() {
 }
 
 export function useApproveAPBill() {
-  const queryClient = useQueryClient()
-  const { getToken } = useClerkToken()
   const { selectedBookId } = useEntityBook()
   
-  return useMutation({
+  return useCompanyOperation({
+    operationName: 'Approved',
+    entityName: 'AP Bill',
     mutationFn: async ({ 
       billId, 
       reason, 
@@ -456,58 +458,43 @@ export function useApproveAPBill() {
         throw new Error('Book ID is required')
       }
       
-      const token = await getToken()
-      const response = await fetch(`/api/v1/fm/books/${selectedBookId}/ap/bills/${billId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason, override_reason: overrideReason }),
+      const response = await apiClient.post(`/fm/books/${selectedBookId}/ap/bills/${billId}/approve`, { 
+        reason, 
+        override_reason: overrideReason 
       })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Failed to approve')
-      }
-      return response.json()
+      return response.data
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['ap-bill', selectedBookId, variables.billId] })
-      queryClient.invalidateQueries({ queryKey: ['ap-bills'] })
-    },
+    invalidateKeys: selectedBookId ? [
+      ['ap-bill', selectedBookId],
+      ['ap-bills'],
+      ['vendor-balances']
+    ] : [
+      ['ap-bills'],
+      ['vendor-balances']
+    ],
   })
 }
 
 export function useRejectAPBill() {
-  const queryClient = useQueryClient()
-  const { getToken } = useClerkToken()
   const { selectedBookId } = useEntityBook()
   
-  return useMutation({
+  return useCompanyOperation({
+    operationName: 'Rejected',
+    entityName: 'AP Bill',
     mutationFn: async ({ billId, reason }: { billId: string; reason: string }) => {
       if (!selectedBookId) {
         throw new Error('Book ID is required')
       }
       
-      const token = await getToken()
-      const response = await fetch(`/api/v1/fm/books/${selectedBookId}/ap/bills/${billId}/reject`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason }),
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Failed to reject')
-      }
-      return response.json()
+      const response = await apiClient.post(`/fm/books/${selectedBookId}/ap/bills/${billId}/reject`, { reason })
+      return response.data
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['ap-bill', selectedBookId, variables.billId] })
-      queryClient.invalidateQueries({ queryKey: ['ap-bills'] })
-    },
+    invalidateKeys: selectedBookId ? [
+      ['ap-bill', selectedBookId],
+      ['ap-bills']
+    ] : [
+      ['ap-bills']
+    ],
   })
 }
 

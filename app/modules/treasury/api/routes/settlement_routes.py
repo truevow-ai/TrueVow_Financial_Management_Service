@@ -15,8 +15,9 @@ from app.modules.treasury.schemas.settlement_schemas import (
 )
 from app.modules.treasury.models.settlement_model import SettlementSource
 from app.core.exceptions import NotFoundError, ValidationError, DuplicateEntryError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/settlements", tags=["Settlements"])
+router = APIRouter(prefix="/settlements", tags=["Settlements"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=SettlementResponse, status_code=status.HTTP_201_CREATED)

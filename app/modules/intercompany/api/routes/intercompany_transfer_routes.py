@@ -14,8 +14,9 @@ from app.modules.intercompany.schemas.intercompany_schemas import (
     IntercompanyTransferResponse
 )
 from app.core.exceptions import NotFoundError, ValidationError
+from app.auth.authorization import get_user_context
 
-router = APIRouter(prefix="/intercompany/transfers", tags=["Intercompany Transfers"])
+router = APIRouter(prefix="/intercompany/transfers", tags=["Intercompany Transfers"], dependencies=[Depends(get_user_context)])
 
 
 @router.post("", response_model=IntercompanyTransferResponse, status_code=status.HTTP_201_CREATED)

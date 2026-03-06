@@ -35,7 +35,6 @@ class ReconciliationAdjustmentBatch(BaseModel):
     rejected_by = Column(UUID(as_uuid=True), nullable=True)
     rejected_at = Column(DateTime(timezone=True), nullable=True)
     decision_reason = Column(Text, nullable=True)
-    row_version = Column(Integer, default=1, nullable=False)
     # Posting fields
     posted_by = Column(UUID(as_uuid=True), nullable=True)
     posted_at = Column(DateTime(timezone=True), nullable=True)

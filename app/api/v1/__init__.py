@@ -5,7 +5,8 @@ from app.modules.general_ledger.api.routes import (
     period_routes,
     journal_entry_routes,
     treasury_sync_routes,
-    reconciliation_routes
+    reconciliation_routes,
+    legal_entity_routes
 )
 from app.modules.treasury.api.routes import (
     bank_account_routes,
@@ -17,7 +18,9 @@ from app.modules.treasury.api.routes import (
 from app.modules.ar.api.routes import (
     billing_sync_routes,
     deferred_revenue_routes,
-    ar_routes
+    ar_routes,
+    pricing_routes,
+    dashboard_stats_routes
 )
 from app.modules.payroll.api.routes import (
     payroll_run_routes,
@@ -39,6 +42,7 @@ router.include_router(period_routes.router)
 router.include_router(journal_entry_routes.router)
 router.include_router(treasury_sync_routes.router)
 router.include_router(reconciliation_routes.router)
+router.include_router(legal_entity_routes.router)
 
 # Include treasury routes
 router.include_router(bank_account_routes.router)
@@ -51,6 +55,8 @@ router.include_router(settlement_routes.router)
 router.include_router(billing_sync_routes.router)
 router.include_router(deferred_revenue_routes.router)
 router.include_router(ar_routes.router)
+router.include_router(pricing_routes.router)
+router.include_router(dashboard_stats_routes.router)
 
 # Include payroll routes
 router.include_router(payroll_run_routes.router)
