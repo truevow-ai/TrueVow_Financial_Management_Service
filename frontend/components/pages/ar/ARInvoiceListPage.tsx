@@ -1,33 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { arApi, ARInvoice } from '@/lib/api/arApi'
+import { useQuery } from '@tanstack/react-query'
+import { arApi } from '@/lib/api/arApi'
 
 export function ARInvoiceListPage() {
-  const [invoices, setInvoices] = useState<ARInvoice[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadInvoices()
-  }, [])
-
-  const loadInvoices = async () => {
-    try {
-      setLoading(true)
-      const response = await arApi.getARInvoices({
-        page: 1,
-        page_size: 50
-      })
-      setInvoices(response.items || [])
-      setError(null)
-    } catch (err) {
-      console.error('Failed to load AR invoices:', err)
-      setError('Failed to load invoices. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['ar-invoices', { page: 1, page_size: 50 }],
+    queryFn: () => arApi.getARInvoices({ page: 1, page_size: 50 }),
+  })
+  const invoices = data?.items || []
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -55,7 +36,7 @@ export function ARInvoiceListPage() {
     return colors[status.toLowerCase()] || 'bg-gray-100 text-gray-800'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -69,7 +50,7 @@ export function ARInvoiceListPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+          Failed to load invoices. Please try again.
         </div>
       </div>
     )
@@ -80,7 +61,7 @@ export function ARInvoiceListPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Accounts Receivable Invoices</h1>
         <button
-          onClick={loadInvoices}
+          onClick={() => refetch()}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Refresh

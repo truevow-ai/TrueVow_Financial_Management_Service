@@ -1,33 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { intercompanyApi, IntercompanyTransfer } from '@/lib/api/intercompanyApi'
+import { useQuery } from '@tanstack/react-query'
+import { intercompanyApi } from '@/lib/api/intercompanyApi'
 
 export function IntercompanyTransferListPage() {
-  const [transfers, setTransfers] = useState<IntercompanyTransfer[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadTransfers()
-  }, [])
-
-  const loadTransfers = async () => {
-    try {
-      setLoading(true)
-      const response = await intercompanyApi.getIntercompanyTransfers({
-        page: 1,
-        page_size: 50
-      })
-      setTransfers(response.items || [])
-      setError(null)
-    } catch (err) {
-      console.error('Failed to load intercompany transfers:', err)
-      setError('Failed to load transfers. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['intercompany-transfers', { page: 1, page_size: 50 }],
+    queryFn: () => intercompanyApi.getIntercompanyTransfers({ page: 1, page_size: 50 }),
+  })
+  const transfers = data?.items || []
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -64,7 +45,7 @@ export function IntercompanyTransferListPage() {
     return labels[type] || type
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -78,7 +59,7 @@ export function IntercompanyTransferListPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+          Failed to load transfers. Please try again.
         </div>
       </div>
     )
@@ -89,7 +70,7 @@ export function IntercompanyTransferListPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Intercompany Transfers</h1>
         <button
-          onClick={loadTransfers}
+          onClick={() => refetch()}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Refresh

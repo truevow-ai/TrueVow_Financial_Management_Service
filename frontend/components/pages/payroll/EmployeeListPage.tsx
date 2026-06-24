@@ -1,32 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { payrollApi, Employee } from '@/lib/api/payrollApi'
+import { useQuery } from '@tanstack/react-query'
+import { payrollApi } from '@/lib/api/payrollApi'
 
 export function EmployeeListPage() {
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadEmployees()
-  }, [])
-
-  const loadEmployees = async () => {
-    try {
-      setLoading(true)
-      const response = await payrollApi.getEmployees({
-        is_active: true
-      })
-      setEmployees(response || [])
-      setError(null)
-    } catch (err) {
-      console.error('Failed to load employees:', err)
-      setError('Failed to load employees. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['employees', { is_active: true }],
+    queryFn: () => payrollApi.getEmployees({ is_active: true }),
+  })
+  const employees = data || []
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -37,12 +19,12 @@ export function EmployeeListPage() {
   }
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? 'bg-green-100 text-green-800' 
+    return isActive
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -56,7 +38,7 @@ export function EmployeeListPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+          Failed to load employees. Please try again.
         </div>
       </div>
     )
@@ -67,7 +49,7 @@ export function EmployeeListPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
         <button
-          onClick={loadEmployees}
+          onClick={() => refetch()}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Refresh

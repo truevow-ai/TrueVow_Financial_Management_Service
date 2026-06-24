@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { useGLDetail } from '@/hooks/useReports'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { reportingApi } from '@/lib/api/reportingApi'
@@ -18,6 +19,13 @@ export function GLDetailPage() {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [page, setPage] = useState(1)
   const pageSize = 50
+
+  // Drill-down: when navigated from Trial Balance (?account=CODE), filter to that account.
+  const [accountCode, setAccountCode] = useState<string>('')
+  useEffect(() => {
+    const fromQuery = new URLSearchParams(window.location.search).get('account')
+    if (fromQuery) setAccountCode(fromQuery)
+  }, [])
 
   const { data: report, isLoading, error } = useGLDetail({
     legal_entity_id: legalEntityId,
@@ -134,6 +142,11 @@ export function GLDetailPage() {
   const transactionCount = report?.rows?.length || 0
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
+
+  const allRows = report?.rows || []
+  const displayedRows = accountCode
+    ? allRows.filter((r) => r.account_code === accountCode)
+    : allRows
 
   return (
     <div className="space-y-6">
@@ -306,16 +319,34 @@ export function GLDetailPage() {
             className="input"
             placeholder="Search description..."
           />
+          {accountCode && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-sm text-primary-700">
+              Account: {accountCode}
+              <button
+                type="button"
+                onClick={() => setAccountCode('')}
+                className="font-bold hover:text-primary-900"
+                title="Clear account filter"
+                aria-label="Clear account filter"
+              >
+                ×
+              </button>
+            </span>
+          )}
         </div>
 
-        {report && report.rows && report.rows.length === 0 ? (
+        {displayedRows.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No transactions found</p>
+            <p className="text-gray-500">
+              {accountCode
+                ? `No transactions found for account ${accountCode}`
+                : 'No transactions found'}
+            </p>
           </div>
         ) : (
           <>
             <VirtualizedTableWrapper
-              data={report?.rows || []}
+              data={displayedRows}
               height={600}
               renderHeader={() => (
                 <tr>
@@ -333,7 +364,15 @@ export function GLDetailPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(row.entry_date)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.entry_number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <Link
+                      href={`/journal-entries/${row.entry_id}`}
+                      className="text-primary-600 hover:underline"
+                      title="View journal entry"
+                    >
+                      {row.entry_number}
+                    </Link>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {row.account_code} - {row.account_name}
                   </td>

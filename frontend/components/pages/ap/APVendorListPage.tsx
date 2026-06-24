@@ -1,48 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { apApi, APVendor } from '@/lib/api/apApi'
+import { useQuery } from '@tanstack/react-query'
+import { apApi } from '@/lib/api/apApi'
 
 export function APVendorListPage() {
-  const [vendors, setVendors] = useState<APVendor[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadVendors()
-  }, [])
-
-  const loadVendors = async () => {
-    try {
-      setLoading(true)
-      const response = await apApi.getAPVendors({
-        is_active: true
-      })
-      setVendors(response || [])
-      setError(null)
-    } catch (err) {
-      console.error('Failed to load AP vendors:', err)
-      setError('Failed to load vendors. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['ap-vendors', { is_active: true }],
+    queryFn: () => apApi.getAPVendors({ is_active: true }),
+  })
+  const vendors = data || []
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? 'bg-green-100 text-green-800' 
+    return isActive
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -56,7 +30,7 @@ export function APVendorListPage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+          Failed to load vendors. Please try again.
         </div>
       </div>
     )
@@ -67,7 +41,7 @@ export function APVendorListPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Accounts Payable Vendors</h1>
         <button
-          onClick={loadVendors}
+          onClick={() => refetch()}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Refresh

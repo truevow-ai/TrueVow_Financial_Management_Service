@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTrialBalance } from '@/hooks/useReports'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { reportingApi } from '@/lib/api/reportingApi'
@@ -9,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { VirtualizedTableWrapper } from '@/components/common/VirtualizedTableWrapper'
 
 export function TrialBalancePage() {
+  const router = useRouter()
   const { selectedEntityId, selectedBookId } = useEntityBook()
   const legalEntityId = selectedEntityId || ''
   const bookId = selectedBookId || ''
@@ -217,8 +219,19 @@ export function TrialBalancePage() {
               )}
               renderRow={(row) => (
                 <>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {row.account_code}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(
+                          `/reports/gl-detail?account=${encodeURIComponent(row.account_code)}`
+                        )
+                      }
+                      className="text-primary-600 hover:underline font-medium"
+                      title="View GL detail for this account"
+                    >
+                      {row.account_code}
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{row.account_name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
