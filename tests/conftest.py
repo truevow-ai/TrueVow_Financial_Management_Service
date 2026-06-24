@@ -22,6 +22,22 @@ from sqlalchemy.pool import StaticPool
 from uuid import uuid4
 from datetime import date, datetime
 
+# Allow Postgres JSONB columns (e.g. row_audit_log.before_data) to be created
+# under the in-memory SQLite engine used for offline unit tests.
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY as PG_ARRAY
+
+
+@compiles(JSONB, "sqlite")
+def _compile_jsonb_sqlite(element, compiler, **kw):  # noqa: ANN001, ANN201
+    return "JSON"
+
+
+@compiles(PG_ARRAY, "sqlite")
+def _compile_array_sqlite(element, compiler, **kw):  # noqa: ANN001, ANN201
+    return "JSON"
+
+
 from app.core.database import Base, get_db_session
 from app.modules.general_ledger.models.legal_entity_model import LegalEntity
 from app.modules.general_ledger.models.book_model import Book, BookType
@@ -126,13 +142,20 @@ async def test_book(test_db: AsyncSession, test_legal_entity: LegalEntity) -> Bo
 
 @pytest.fixture
 async def test_period(test_db: AsyncSession, test_book: Book) -> AccountingPeriod:
-    """Create test accounting period"""
+    """Create test accounting period covering the current month.
+
+    Spanning the current month keeps tests that post entries dated
+    ``date.today()`` working regardless of when they run.
+    """
+    import calendar
+    today = date.today()
+    last_day = calendar.monthrange(today.year, today.month)[1]
     period = AccountingPeriod(
         id=uuid4(),
         book_id=test_book.id,
-        period_name="2026-02",
-        period_start=date(2026, 2, 1),
-        period_end=date(2026, 2, 28),
+        period_name=today.strftime("%Y-%m"),
+        period_start=today.replace(day=1),
+        period_end=today.replace(day=last_day),
         status=PeriodStatus.OPEN
     )
     test_db.add(period)

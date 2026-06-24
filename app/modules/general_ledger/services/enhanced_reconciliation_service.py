@@ -6,8 +6,10 @@ from uuid import UUID
 from datetime import date, timedelta
 from decimal import Decimal
 from app.modules.general_ledger.services.reconciliation_service import ReconciliationService
-from app.modules.general_ledger.repositories.journal_entry_repository import JournalEntryRepository
-from app.modules.general_ledger.repositories.journal_line_repository import JournalLineRepository
+from app.modules.general_ledger.repositories.journal_entry_repository import (
+    JournalEntryRepository,
+    JournalLineRepository,
+)
 from app.modules.treasury.repositories.bank_transaction_repository import BankTransactionRepository
 from app.modules.general_ledger.models.reconciliation_model import ReconciliationMatch
 from app.modules.general_ledger.models.journal_entry_model import JournalEntryStatus
@@ -269,8 +271,8 @@ class EnhancedReconciliationService(ReconciliationService):
             raise NotFoundError("CASH_BANK account mapping not found")
         
         # Create adjustment journal entry
-        from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
-        je_service = JournalEntryService(self.session)
+        from app.modules.general_ledger.services.ledger_poster import get_ledger_poster
+        je_service = get_ledger_poster(self.session)
         
         entry = await je_service.create_draft_entry(
             book_id=cash_book.id,

@@ -2,7 +2,27 @@
 
 **Project:** TrueVow FM + Treasury Services  
 **Started:** December 21, 2025  
-**Last Updated:** January 29, 2026 (Environment verification in progress)
+**Last Updated:** June 25, 2026 (GL LedgerPoster swap seam — verified)
+
+---
+
+## Recent Updates (June 25, 2026)
+
+### GL Core Swap Seam (LedgerPoster) ✅ VERIFIED
+
+**Status:** DONE (backend + frontend verified offline)
+
+**What changed:**
+- Added `app/modules/general_ledger/services/ledger_poster.py` — `LedgerPoster` Protocol + `get_ledger_poster()` factory. Single swap point controlled by `LEDGER_BACKEND` (defaults to the internal `JournalEntryService`; raises `NotImplementedError` for unknown backends, e.g. future TigerBeetle/Formance).
+- Rewired all 8 subledgers to post through the seam instead of importing `JournalEntryService` directly: AP bill posting, AR posting, deferred revenue, cash book posting, enhanced reconciliation, reconciliation adjustment posting, intercompany transfer, payroll run.
+- Offline test harness: `tests/conftest.py` defaults to in-memory SQLite when `TEST_DATABASE_URL` is unset (JSONB/ARRAY compiled to JSON for SQLite) so the ledger suite runs without network. Affiliates models import deferred in `app/core/database.py` (P1 cut; files preserved).
+- New tests: `tests/test_ledger_poster_contract.py` (seam contract, 4) and `tests/test_journal_entry_service.py` (GL invariants, 8).
+- Frontend feature pages: list pages migrated to React Query; new routes `/ap/aging`, `/ar/aging`, `/ar/revenue-schedules`, `/intercompany`, `/journal-entries/[id]`, `/periods`, `/treasury/reconciliation/[id]`.
+
+**Verification:**
+- Backend: all 12 ledger tests PASS offline; all 10 changed service modules import cleanly; no stray direct `JournalEntryService()` left in subledgers.
+- Frontend: `pnpm typecheck` PASS, `pnpm lint` PASS (3 pre-existing warnings only), `pnpm build` PASS (32 routes, 28/28 static pages).
+- Not runnable in this environment (pre-existing/environmental): live-Supabase integration/compliance/idempotency-runtime tests; `ruff`/`mypy`.
 
 ---
 

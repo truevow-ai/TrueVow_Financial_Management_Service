@@ -17,7 +17,7 @@ from app.modules.payroll.models.payroll_run_model import (
     PayrollRunComponentLine,
     PayrollRunStatus
 )
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountMappingRepository
 from app.core.exceptions import NotFoundError, ValidationError
 
@@ -32,7 +32,7 @@ class PayrollRunService:
         self.pay_group_repo = PayGroupRepository(session)
         self.employee_repo = HREmployeeRepository(session)
         self.calc_service = PayrollCalculationService(session)
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.mapping_repo = GLAccountMappingRepository(session)
     
     async def create_run(

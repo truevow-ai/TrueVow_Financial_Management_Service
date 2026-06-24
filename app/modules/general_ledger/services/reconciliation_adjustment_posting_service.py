@@ -10,7 +10,7 @@ from app.modules.general_ledger.repositories.reconciliation_adjustment_batch_rep
 from app.modules.general_ledger.models.reconciliation_adjustment_batch_model import (
     AdjustmentBatchStatus
 )
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountMappingRepository
 from app.core.exceptions import NotFoundError, ValidationError
 from app.core.row_version import check_row_version
@@ -22,7 +22,7 @@ class ReconciliationAdjustmentPostingService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.batch_repo = ReconciliationAdjustmentBatchRepository(session)
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.mapping_repo = GLAccountMappingRepository(session)
     
     async def post_adjustment_batch(

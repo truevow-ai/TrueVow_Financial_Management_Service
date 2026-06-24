@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 from app.modules.ap.repositories.ap_bill_repository import APBillRepository
 from app.modules.ap.repositories.ap_bill_line_repository import APBillLineRepository
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountRepository
 from app.modules.general_ledger.repositories.accounting_period_repository import AccountingPeriodRepository
 from app.modules.ap.models.ap_bill_model import BillStatus
@@ -20,7 +20,7 @@ class APBillPostingService:
         self.session = session
         self.bill_repo = APBillRepository(session)
         self.line_repo = APBillLineRepository(session)
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.account_repo = GLAccountRepository(session)
         self.period_repo = AccountingPeriodRepository(session)
     

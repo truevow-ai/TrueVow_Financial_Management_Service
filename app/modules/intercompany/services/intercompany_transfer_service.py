@@ -8,7 +8,7 @@ from app.modules.intercompany.repositories.intercompany_transfer_repository impo
 from app.modules.general_ledger.repositories.legal_entity_repository import LegalEntityRepository
 from app.modules.general_ledger.repositories.book_repository import BookRepository
 from app.modules.general_ledger.models.book_model import BookType
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountMappingRepository
 from app.modules.intercompany.models.intercompany_transfer_model import IntercompanyTransfer
 from app.core.exceptions import NotFoundError, ValidationError
@@ -22,7 +22,7 @@ class IntercompanyTransferService:
         self.transfer_repo = IntercompanyTransferRepository(session)
         self.entity_repo = LegalEntityRepository(session)
         self.book_repo = BookRepository(session)
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.mapping_repo = GLAccountMappingRepository(session)
     
     async def create_transfer(

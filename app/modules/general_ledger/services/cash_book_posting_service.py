@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from datetime import date
 from decimal import Decimal
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.services.treasury_sync_service import TreasurySyncService
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountMappingRepository
 from app.modules.general_ledger.repositories.book_repository import BookRepository
@@ -22,7 +22,7 @@ class CashBookPostingService:
     
     def __init__(self, session: AsyncSession):
         self.session = session
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.sync_service = TreasurySyncService(session)
         self.mapping_repo = GLAccountMappingRepository(session)
         self.book_repo = BookRepository(session)

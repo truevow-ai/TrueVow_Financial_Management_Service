@@ -254,7 +254,8 @@ class JournalEntryService:
         journal_entry_id: UUID,
         reversed_by: UUID,
         reason: str,
-        reversal_date: Optional[date] = None
+        reversal_date: Optional[date] = None,
+        source_key: Optional[str] = None
     ) -> JournalEntry:
         """Reverse a posted journal entry"""
         original_entry = await self.entry_repo.get_by_id(journal_entry_id)

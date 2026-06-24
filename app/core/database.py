@@ -71,12 +71,16 @@ from app.modules.ap.models import (
     APAllocation,
     APWithholdingProfile,
 )
-from app.modules.affiliates.models import (
-    AffiliatePartner,
-    AffiliateAgreement,
-    AffiliateEarningEvent,
-    AffiliatePayout,
-)
+# DEFERRED (P1 cut): the affiliates module is scaffolding only (models, no
+# services/repositories/API routes). It is parked to avoid creating unused
+# tables. Files are preserved under app/modules/affiliates/. Re-enable this
+# import when affiliate payouts are actually built.
+# from app.modules.affiliates.models import (
+#     AffiliatePartner,
+#     AffiliateAgreement,
+#     AffiliateEarningEvent,
+#     AffiliatePayout,
+# )
 # PayRuleSet, PayRule, StatContributionRule, TaxWithholdingTable, PayrollExportTemplate, PayrollLiabilityBalance
 # are not yet implemented in payroll.models; omit until pay_rule_model etc. exist
 from app.modules.core.models import (

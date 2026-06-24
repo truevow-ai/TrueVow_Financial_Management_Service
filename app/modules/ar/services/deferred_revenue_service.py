@@ -10,7 +10,7 @@ from app.modules.ar.repositories.deferred_revenue_repository import (
     RevenueSchedulePeriodRepository
 )
 from app.modules.ar.repositories.ar_invoice_line_repository import ARInvoiceLineRepository
-from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import LedgerPoster, get_ledger_poster
 from app.modules.general_ledger.repositories.gl_account_repository import GLAccountMappingRepository
 from app.modules.general_ledger.repositories.book_repository import BookRepository
 from app.modules.general_ledger.models.book_model import BookType
@@ -30,7 +30,7 @@ class DeferredRevenueService:
         self.schedule_repo = RevenueScheduleRepository(session)
         self.period_repo = RevenueSchedulePeriodRepository(session)
         self.line_repo = ARInvoiceLineRepository(session)
-        self.je_service = JournalEntryService(session)
+        self.je_service: LedgerPoster = get_ledger_poster(session)
         self.mapping_repo = GLAccountMappingRepository(session)
         self.book_repo = BookRepository(session)
     

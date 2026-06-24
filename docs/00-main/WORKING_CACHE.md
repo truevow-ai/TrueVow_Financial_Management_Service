@@ -36,7 +36,21 @@ Must ask before deleting any file/folder:
 3) Repeat until green
 
 ## Current Status
-DONE — Row-level audit trigger deployed (migration 006)
+DONE — GL LedgerPoster swap seam wired across all subledgers; backend + frontend verified
+
+## Recent Changes (2026-06-25)
+- GL swap seam introduced: app/modules/general_ledger/services/ledger_poster.py
+  (LedgerPoster Protocol + get_ledger_poster() factory; LEDGER_BACKEND env, defaults to internal JournalEntryService).
+- All 8 subledgers now post via the seam instead of importing JournalEntryService directly:
+  AP bill, AR posting, deferred revenue, cash book, enhanced reconciliation,
+  reconciliation adjustment, intercompany transfer, payroll run.
+- Offline test harness: tests/conftest.py defaults to in-memory SQLite (no network);
+  JSONB/ARRAY compiled to JSON for SQLite. Affiliates import deferred in app/core/database.py (P1 cut, files preserved).
+- New tests: tests/test_ledger_poster_contract.py (4) + tests/test_journal_entry_service.py (8) — all 12 PASS offline.
+- All 10 changed backend service modules import cleanly; no stray direct JournalEntryService() in subledgers.
+- Frontend feature pages (list pages -> React Query; aging/periods/JE-detail/reconciliation routes):
+  pnpm typecheck PASS, pnpm lint PASS (3 pre-existing warnings only), pnpm build PASS (32 routes, 28/28 static pages).
+- NOT runnable here (pre-existing/environment): live-Supabase integration/compliance/idempotency-runtime tests; ruff/mypy (bundled binary broken / not on PATH).
 
 ## Recent Changes (2026-03-02)
 - Phase 1 DEPLOYED: RLS policies (61 tables, 92 policies)
@@ -61,4 +75,4 @@ DONE — Row-level audit trigger deployed (migration 006)
 - Treasury tables (bank_account, bank_transaction, settlement, fx_conversion, transfer, sync_cursor) not in DB yet — pre-existing gap
 
 ## Next Single Action
-When treasury tables are created, re-run database/row_audit_triggers.sql to attach their triggers (idempotent).
+Optional: route GL's own journal_entry_routes.py through get_ledger_poster() too (it still instantiates JournalEntryService directly — acceptable, but would complete the seam). Otherwise: when treasury tables are created, re-run database/row_audit_triggers.sql to attach their triggers (idempotent).
