@@ -8,6 +8,7 @@ from app.core.database import get_db_session
 from app.core.idempotency import require_idempotency_key, apply_idempotency
 from app.core.endpoint_keys import JE_POST, JE_REVERSE
 from app.modules.general_ledger.services.journal_entry_service import JournalEntryService
+from app.modules.general_ledger.services.ledger_poster import get_ledger_poster
 from app.modules.general_ledger.schemas.journal_entry_schemas import (
     JournalEntryCreate,
     JournalEntryPostRequest,
@@ -55,14 +56,14 @@ async def create_journal_entry(
         # Tenant users need FM_JOURNAL_ENTRY permission
         if not user.has_permission(TenantPermission.FM_JOURNAL_ENTRY.value):
             raise HTTPException(status_code=403, detail="Permission denied: fm:journal_entry required")
-    service = JournalEntryService(db)
+    poster = get_ledger_poster(db)
     
     # Use header idempotency key if provided, otherwise use request body
     key = idempotency_key or entry.idempotency_key
     
     try:
         # Create draft entry
-        created_entry = await service.create_draft_entry(
+        created_entry = await poster.create_draft_entry(
             book_id=book_id,
             entry_date=entry.entry_date,
             description=entry.description,
@@ -75,7 +76,7 @@ async def create_journal_entry(
         
         # Add lines
         for line in entry.lines:
-            await service.add_line(
+            await poster.add_line(
                 journal_entry_id=created_entry.id,
                 gl_account_id=line.gl_account_id,
                 debit_fc=line.debit_fc,
@@ -181,8 +182,10 @@ async def post_journal_entry(
     actor_user_id = UUID(user_id_str) if user_id_str else None
     
     # Handler function (return serializable so idempotency store + response_model work)
+    poster = get_ledger_poster(db)
+
     async def handler():
-        posted_entry = await service.post_entry(
+        posted_entry = await poster.post_entry(
             journal_entry_id=entry_id,
             posted_by=posted_by,
             require_dimensions=request.require_dimensions
@@ -253,8 +256,10 @@ async def reverse_journal_entry(
     actor_user_id = UUID(user_id_str) if user_id_str else None
     
     # Handler function
+    poster = get_ledger_poster(db)
+
     async def handler():
-        reversed_entry = await service.reverse_entry(
+        reversed_entry = await poster.reverse_entry(
             journal_entry_id=entry_id,
             reversed_by=reversed_by,
             reason=request.reason,
